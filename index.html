@@ -54,14 +54,14 @@ html,body{max-width:100%;overflow-x:hidden}
 .newsbar{padding:10px 12px}.newshead{display:flex;align-items:center;justify-content:space-between;gap:8px}.newscats{display:flex;gap:5px;margin:7px 0;overflow:auto}.newscats button{border:0;background:#edf3f0;color:#496058;padding:5px 8px;border-radius:15px;font-size:11px;font-weight:800;white-space:nowrap}.newscats button.active{background:#0b6b53;color:#fff}.newsitem{padding:10px 0;border-top:1px solid #edf1ef}.newsitem a{color:#17201d;text-decoration:none;font-weight:800;font-size:13px;line-height:1.35}.newsitem a:hover{color:#0b6b53}.newsmeta{font-size:10px;color:#75827d;margin-top:4px}.newsdesc{font-size:11px;color:#596760;line-height:1.35;margin-top:4px}.news-error{font-size:11px;color:#8a6500;background:#fff8df;padding:7px;border-radius:8px}@media(max-width:700px){.newsbar{padding:8px}.newsitem{padding:8px 0}.newsitem a{font-size:12px}.newsdesc{font-size:10px}.newshead b{font-size:12px}}</style>
 </head>
 <body>
-<header class="top"><div class="logo">KORA</div><div class="tag">Le réseau social made in Bénin 🇧🇯</div><input id="globalSearch" class="search" placeholder="Rechercher sur Kora…"><div class="authlinks"><a class="loginlink" href="connexion.html">Se connecter</a><a class="registerlink" href="inscription.html">S’inscrire</a></div><div class="userpill"><div id="topAvatar" class="avatar">K</div><span id="topUser">Visiteur</span></div></header>
+<header class="top"><div class="logo">KORA</div><div class="tag">Le réseau social made in Bénin 🇧🇯</div><input id="globalSearch" class="search" placeholder="🔎 Rechercher une personne…" autocomplete="off"><div class="authlinks"><a class="loginlink" href="connexion.html">Se connecter</a><a class="registerlink" href="inscription.html">S’inscrire</a></div><div class="userpill"><div id="topAvatar" class="avatar">K</div><span id="topUser">Visiteur</span></div></header>
 <div class="layout">
 <aside class="left">
 <button class="nav active" onclick="showPage('home',this)">🏠 Accueil</button><button class="nav" onclick="showPage('explore',this)">🔎 Explorer</button><button class="nav" onclick="showPage('friends',this)">👥 Mes proches</button><button class="nav" onclick="showPage('messages',this)">💬 Messages</button><button class="nav" onclick="showPage('notifications',this)">🔔 Notifications</button><button class="nav" onclick="showPage('market',this)">🛒 Marché</button><button class="nav" onclick="showPage('events',this)">📅 Événements</button><button class="nav" onclick="showPage('profile',this)">👤 Mon profil</button>
 </aside>
 <main>
 <section id="home" class="page active"><div class="card feedbar"><div><b>📰 Fil d’actualité</b><div class="small">Les publications récentes de Kora</div></div><span id="offlineBadge" class="offlineBadge">Hors connexion</span></div><div class="card feedbar"><div class="feedtabs"><button class="active" onclick="setFeedFilter('recent',this)">Récent</button><button onclick="setFeedFilter('popular',this)">Populaire</button><button onclick="setFeedFilter('local',this)">Bénin</button></div><button class="action" onclick="loadPosts();loadInternetNews()">↻</button></div><div class="card newsbar"><div class="newshead"><b>🌐 Actualités Internet</b><button class="action" onclick="loadInternetNews()">Actualiser</button></div><div class="newscats"><button class="active" onclick="setNewsCategory('benin',this)">🇧🇯 Bénin</button><button onclick="setNewsCategory('afrique',this)">🌍 Afrique</button><button onclick="setNewsCategory('monde',this)">🌎 Monde</button><button onclick="setNewsCategory('tech',this)">💻 Tech</button><button onclick="setNewsCategory('sport',this)">⚽ Sport</button><button onclick="setNewsCategory('economie',this)">💰 Économie</button></div><div id="internetNews" class="newslist"><div class="notice">Chargement des actualités…</div></div></div><div class="card composer"><div class="row"><div id="composerAvatar" class="avatar">K</div><b id="composerName">Visiteur</b></div><textarea id="composerText" class="textarea" placeholder="Quoi de neuf au Bénin ?"></textarea><div style="text-align:right;margin-top:9px"><button class="btn" onclick="publish()">Publier</button></div></div><div id="feed"></div></section>
-<section id="explore" class="page"><div class="card sidecard"><h2>Explorer Kora</h2><input id="peopleSearch" class="search" style="width:100%" placeholder="Rechercher une personne ou une ville…"><div id="peopleList"></div></div><div id="exploreFeed"></div></section>
+<section id="explore" class="page"><div class="card sidecard"><h2>🔎 Rechercher des personnes</h2><p class="small">Trouve les personnes inscrites sur Kora par prénom, nom ou ville.</p><input id="peopleSearch" class="search" style="width:100%" placeholder="Ex. Aïcha, Mensah, Cotonou…" autocomplete="off"><div id="peopleList"></div></div><div id="exploreFeed"></div></section>
 <section id="friends" class="page"><div class="card"><div class="sectiontitle"><h2>Mes proches</h2><div class="tabs"><button onclick="loadDiscover()">Découvrir</button><button onclick="loadRequests()">Demandes</button><button onclick="loadFriends()">Mes amis</button></div></div><div id="friendsList"></div></div></section>
 <section id="messages" class="page"><div class="card chat"><div id="chatHead" class="chathead">Sélectionne une conversation</div><div id="chatBody" class="chatbody"><div class="notice">Tes messages apparaîtront ici.</div></div><div class="chatinput"><input id="messageInput" placeholder="Écrire un message…"><button class="btn" onclick="sendMessage()">Envoyer</button><button class="btn secondary" onclick="startCallFromChat()">🎙️ Appeler</button></div></div><div class="card sidecard"><h3>Conversations</h3><div id="conversationList"></div></div></section>
 <section id="notifications" class="page"><div class="card"><div class="sectiontitle"><h2>Notifications</h2></div><div id="notificationsList"></div></div></section>
@@ -97,8 +97,19 @@ async function publish(){if(!requireUser())return;const el=document.getElementBy
 async function likePost(id){if(!requireUser())return;try{await api('/api/posts/'+id+'/like?user_id='+me.id,{method:'POST'});loadPosts()}catch(e){alert(e.message)}}
 async function commentPost(id){if(!requireUser())return;const text=prompt('Votre commentaire :');if(!text?.trim())return;try{await api('/api/posts/'+id+'/comments',{method:'POST',body:JSON.stringify({user_id:me.id,content:text})});loadPosts()}catch(e){alert(e.message)}}
 async function deletePost(id){if(!requireUser())return;try{await api('/api/posts/'+id+'?user_id='+me.id,{method:'DELETE'});loadPosts()}catch(e){alert(e.message)}}
+async function searchPeople(q='',targetId='peopleList'){
+  const el=document.getElementById(targetId); if(!el)return;
+  const term=q.trim();
+  if(!term){el.innerHTML='<div class="notice">Commence à taper un prénom, un nom ou une ville.</div>';return}
+  el.innerHTML='<div class="notice">🔎 Recherche en cours…</div>';
+  try{
+    const d=await api('/api/users?search='+encodeURIComponent(term));
+    users=(d.users||[]).filter(u=>u.id!==me?.id);
+    el.innerHTML=users.map(u=>`<div class="person"><div class="avatar">${esc((u.first_name||'K')[0])}</div><div class="grow"><b>${esc(u.first_name+' '+u.last_name)}</b><div class="small">${esc(u.city||'Bénin')}${u.bio?' · '+esc(u.bio.slice(0,70)):''}</div></div><button class="btn" onclick="addFriend(${u.id})">+ Ajouter</button><button class="btn secondary" onclick="openChat(${u.id})">💬</button></div>`).join('')||'<div class="notice">Aucune personne trouvée.</div>';
+  }catch(e){el.innerHTML='<div class="notice">Impossible de rechercher les utilisateurs pour le moment.</div>';console.error(e)}
+}
 async function loadDiscover(q=''){try{const d=await api('/api/users?search='+encodeURIComponent(q));users=d.users.filter(u=>u.id!==me?.id);renderPeople(users)}catch(e){console.error(e)}}
-function renderPeople(arr){const el=document.getElementById('friendsList');el.innerHTML=arr.map(u=>`<div class="person"><div class="avatar">${esc((u.first_name||'K')[0])}</div><div class="grow"><b>${esc(u.first_name+' '+u.last_name)}</b><div class="small">${esc(u.city||'Bénin')}</div></div><button class="btn" onclick="addFriend(${u.id})">+ Ajouter</button><button class="btn secondary" onclick="openChat(${u.id})">💬</button></div>`).join('')||'<div class="notice">Aucun utilisateur.</div>'}
+function renderPeople(arr){const el=document.getElementById('friendsList');if(!el)return;el.innerHTML=arr.map(u=>`<div class="person"><div class="avatar">${esc((u.first_name||'K')[0])}</div><div class="grow"><b>${esc(u.first_name+' '+u.last_name)}</b><div class="small">${esc(u.city||'Bénin')}</div></div><button class="btn" onclick="addFriend(${u.id})">+ Ajouter</button><button class="btn secondary" onclick="openChat(${u.id})">💬</button></div>`).join('')||'<div class="notice">Aucun utilisateur.</div>'}
 async function addFriend(id){if(!requireUser())return;try{await api('/api/friends/request',{method:'POST',body:JSON.stringify({user_id:me.id,friend_id:id})});alert('Demande envoyée.');loadDiscover()}catch(e){alert(e.message)}}
 async function loadRequests(){if(!requireUser())return;try{const d=await api('/api/friends/requests/'+me.id);document.getElementById('friendsList').innerHTML=d.requests.map(r=>`<div class="person"><div class="avatar">${esc(r.first_name[0])}</div><div class="grow"><b>${esc(r.first_name+' '+r.last_name)}</b><div class="small">${esc(r.city)}</div></div><button class="btn" onclick="respond(${r.id},'accept')">✓</button><button class="btn danger" onclick="respond(${r.id},'reject')">✕</button></div>`).join('')||'<div class="notice">Aucune demande.</div>'}catch(e){alert(e.message)}}
 async function respond(id,a){try{await api('/api/friends/'+id+'/'+a,{method:'PUT'});loadRequests()}catch(e){alert(e.message)}}
@@ -128,6 +139,26 @@ function stopTimer(){clearInterval(timerHandle);timerHandle=null;document.getEle
 function closeCall(reason=''){pendingIceCandidates=[];if(localStream)localStream.getTracks().forEach(t=>t.stop());localStream=null;if(pc){pc.close();pc=null}stopTimer();callState='idle';pendingOffer=null;callPeer=0;document.getElementById('callBox').classList.remove('show');document.getElementById('incomingBox').classList.add('hidden');document.getElementById('callMain').classList.remove('hidden');document.getElementById('muteBtn').textContent='🎙️ Micro actif';document.getElementById('pttBtn').classList.remove('active');document.getElementById('enableSoundBtn').style.display='none';if(reason)console.log(reason)}
 function toggleMute(){if(!localStream)return;const t=localStream.getAudioTracks()[0];t.enabled=!t.enabled;document.getElementById('muteBtn').textContent=t.enabled?'🎙️ Micro actif':'🔇 Micro coupé'}
 function ptt(on){if(!localStream)return;const t=localStream.getAudioTracks()[0];t.enabled=on;document.getElementById('pttBtn').classList.toggle('active',on);document.getElementById('pttBtn').textContent=on?'🔴 Parle maintenant':'🎙️ Maintenir pour parler'}
+let peopleSearchTimer=null;
+function openPeopleSearch(value){
+  const input=document.getElementById('peopleSearch');
+  if(input)input.value=value;
+  const exploreBtn=document.querySelector('.nav[onclick*="explore"]');
+  showPage('explore',exploreBtn);
+  searchPeople(value,'peopleList');
+}
+document.getElementById('globalSearch')?.addEventListener('input',e=>{
+  clearTimeout(peopleSearchTimer);
+  const value=e.target.value;
+  if(!value.trim())return;
+  peopleSearchTimer=setTimeout(()=>openPeopleSearch(value),250);
+});
+document.getElementById('globalSearch')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();openPeopleSearch(e.target.value)}});
+document.getElementById('peopleSearch')?.addEventListener('input',e=>{
+  clearTimeout(peopleSearchTimer);
+  peopleSearchTimer=setTimeout(()=>searchPeople(e.target.value,'peopleList'),250);
+});
+
 function boot(){if(localStorage.getItem('koraOffline'))setOffline(true);if(me){document.getElementById('topUser').textContent=me.first_name+' '+me.last_name;document.getElementById('topAvatar').textContent=(me.first_name||'K')[0];document.getElementById('composerName').textContent=me.first_name+' '+me.last_name;document.getElementById('composerAvatar').textContent=(me.first_name||'K')[0];connectRealtime()}loadPosts();loadInternetNews();if(me)loadProfile()}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});boot();
 

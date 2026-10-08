@@ -123,7 +123,7 @@ def login(u:LoginRequest):
 @app.get("/api/users")
 def users(search:str=""):
     c=get_connection(); q="%"+search.strip()+"%"
-    rows=c.execute("""SELECT id,first_name,last_name,email,city,bio FROM users
+    rows=c.execute("""SELECT id,first_name,last_name,city,bio FROM users
                       WHERE first_name LIKE ? OR last_name LIKE ? OR city LIKE ?
                       ORDER BY id DESC""",(q,q,q)).fetchall(); c.close()
     return {"success":True,"users":[dict(r) for r in rows]}
