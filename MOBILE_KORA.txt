@@ -1,0 +1,1 @@
+Version mobile de Kora. Le backend n’a pas été modifié. Connexion et inscription visibles. Navigation mobile fixe en bas. Pas de défilement horizontal; le fil peut défiler normalement.
