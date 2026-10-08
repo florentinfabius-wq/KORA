@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import sqlite3, hashlib, secrets, re, os, json
+import sqlite3, hashlib, secrets, re, os, json, urllib.request, xml.etree.ElementTree as ET, html
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -194,6 +194,76 @@ def create_post(p:PostCreate):
     r=c.execute("""SELECT p.id,p.user_id,p.content,p.created_at,u.first_name,u.last_name,u.city
                    FROM posts p JOIN users u ON u.id=p.user_id WHERE p.id=?""",(pid,)).fetchone(); c.close()
     return {"success":True,"post":dict(r)}
+
+NEWS_FEEDS = {
+    "benin": [
+        ("La Nouvelle Tribune", "https://lanouvelletribune.info/feed/"),
+        ("RFI Bénin", "https://www.rfi.fr/fr/tag/b%C3%A9nin/rss"),
+        ("Le Matinal", "https://lematinal.bj/feed/"),
+        ("Bénin Web TV", "https://beninwebtv.bj/pays/afrique/afrique-de-louest/benin/feed/"),
+    ],
+    "afrique": [
+        ("RFI Afrique", "https://www.rfi.fr/fr/afrique/rss"),
+        ("BBC Afrique", "https://feeds.bbci.co.uk/news/world/africa/rss.xml"),
+        ("France 24 Afrique", "https://www.france24.com/fr/afrique/rss"),
+    ],
+    "monde": [
+        ("BBC World", "https://feeds.bbci.co.uk/news/world/rss.xml"),
+        ("Al Jazeera English", "https://www.aljazeera.com/xml/rss/all.xml"),
+        ("DW World", "https://rss.dw.com/rdf/rss-en-world"),
+        ("France 24", "https://www.france24.com/en/rss"),
+        ("The Guardian World", "https://www.theguardian.com/world/rss"),
+        ("Euronews", "https://www.euronews.com/rss?format=mrss&level=theme&name=news"),
+    ],
+    "tech": [
+        ("BBC Technology", "https://feeds.bbci.co.uk/news/technology/rss.xml"),
+        ("Guardian Technology", "https://www.theguardian.com/uk/technology/rss"),
+        ("NPR Technology", "https://feeds.npr.org/1019/rss.xml"),
+    ],
+    "sport": [
+        ("BBC Sport", "https://feeds.bbci.co.uk/sport/rss.xml"),
+        ("NPR Sports", "https://feeds.npr.org/1055/rss.xml"),
+    ],
+    "economie": [
+        ("BBC Business", "https://feeds.bbci.co.uk/news/business/rss.xml"),
+        ("Guardian Business", "https://www.theguardian.com/business/rss"),
+        ("NPR Business", "https://feeds.npr.org/1006/rss.xml"),
+    ],
+}
+
+def clean_text(value):
+    if not value: return ""
+    return re.sub(r"\\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", value))).strip()
+
+def parse_rss(source, url, limit=12):
+    req=urllib.request.Request(url, headers={"User-Agent":"KoraNews/1.0"})
+    with urllib.request.urlopen(req, timeout=8) as response: raw=response.read()
+    root=ET.fromstring(raw); nodes=root.findall(".//item") or root.findall(".//{http://www.w3.org/2005/Atom}entry")
+    items=[]
+    for node in nodes[:limit]:
+        def val(name):
+            x=node.find(name)
+            if x is not None and x.text: return x.text.strip()
+            x=node.find("{http://www.w3.org/2005/Atom}"+name)
+            return x.text.strip() if x is not None and x.text else ""
+        title=clean_text(val("title")); desc=clean_text(val("description") or val("summary")); link=val("link")
+        if not link:
+            x=node.find("{http://www.w3.org/2005/Atom}link"); link=x.attrib.get("href","") if x is not None else ""
+        date=val("pubDate") or val("published") or val("updated")
+        if title and link: items.append({"title":title,"description":desc[:320],"url":link,"source":source,"published_at":date})
+    return items
+
+@app.get("/api/news")
+def internet_news(category:str="benin",limit:int=20):
+    category=category if category in NEWS_FEEDS else "benin"; limit=max(1,min(limit,40)); articles=[]; failed=[]
+    for source,url in NEWS_FEEDS[category]:
+        try: articles.extend(parse_rss(source,url,12))
+        except Exception: failed.append(source)
+    seen=set(); unique=[]
+    for a in articles:
+        if a["url"] in seen: continue
+        seen.add(a["url"]); unique.append(a)
+    return {"success":True,"category":category,"articles":unique[:limit],"sources_failed":failed}
 
 @app.get("/api/posts")
 def list_posts(user_id:int=0,limit:int=50):
