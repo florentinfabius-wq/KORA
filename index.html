@@ -160,26 +160,6 @@ function stopTimer(){clearInterval(timerHandle);timerHandle=null;document.getEle
 function closeCall(reason=''){pendingIceCandidates=[];if(localStream)localStream.getTracks().forEach(t=>t.stop());localStream=null;if(pc){pc.close();pc=null}stopTimer();callState='idle';pendingOffer=null;callPeer=0;document.getElementById('callBox').classList.remove('show');document.getElementById('incomingBox').classList.add('hidden');document.getElementById('callMain').classList.remove('hidden');document.getElementById('muteBtn').textContent='🎙️ Micro actif';document.getElementById('pttBtn').classList.remove('active');document.getElementById('enableSoundBtn').style.display='none';if(reason)console.log(reason)}
 function toggleMute(){if(!localStream)return;const t=localStream.getAudioTracks()[0];t.enabled=!t.enabled;document.getElementById('muteBtn').textContent=t.enabled?'🎙️ Micro actif':'🔇 Micro coupé'}
 function ptt(on){if(!localStream)return;const t=localStream.getAudioTracks()[0];t.enabled=on;document.getElementById('pttBtn').classList.toggle('active',on);document.getElementById('pttBtn').textContent=on?'🔴 Parle maintenant':'🎙️ Maintenir pour parler'}
-let peopleSearchTimer=null;
-function openPeopleSearch(value){
-  const input=document.getElementById('peopleSearch');
-  if(input)input.value=value;
-  const exploreBtn=document.querySelector('.nav[onclick*="explore"]');
-  showPage('explore',exploreBtn);
-  searchPeople(value,'peopleList');
-}
-document.getElementById('globalSearch')?.addEventListener('input',e=>{
-  clearTimeout(peopleSearchTimer);
-  const value=e.target.value;
-  if(!value.trim())return;
-  peopleSearchTimer=setTimeout(()=>openPeopleSearch(value),250);
-});
-document.getElementById('globalSearch')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();openPeopleSearch(e.target.value)}});
-document.getElementById('peopleSearch')?.addEventListener('input',e=>{
-  clearTimeout(peopleSearchTimer);
-  peopleSearchTimer=setTimeout(()=>searchPeople(e.target.value,'peopleList'),250);
-});
-
 function boot(){if(localStorage.getItem('koraOffline'))setOffline(true);if(me){document.getElementById('topUser').textContent=me.first_name+' '+me.last_name;document.getElementById('topAvatar').textContent=(me.first_name||'K')[0];document.getElementById('composerName').textContent=me.first_name+' '+me.last_name;document.getElementById('composerAvatar').textContent=(me.first_name||'K')[0];connectRealtime()}loadPosts();loadInternetNews();if(me)loadProfile()}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});boot();
 
